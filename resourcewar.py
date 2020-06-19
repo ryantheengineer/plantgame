@@ -30,25 +30,57 @@ class Player:
         self.needbrown = needbrown
         self.bidpower = bidpower
         self.oppntbidpwr = oppntbidpwr
-        self.resavail = []
+        self.inbag = []
         self.blueavail = []
         self.brownavail = []
 
     # Check how many total resources are available (left in the bag)
     def seebag(self, bag):
-        self.resavail = len(bag)
+        self.inbag = len(bag)
 
     def seeresdraw(self, blueavail, brownavail):
         self.blueavail = blueavail
         self.brownavail = brownavail
 
+
+
     def calcbid(self, method):
-        if method == "random":
-            bid = random.randint(0,self.bidpower)
+        if method == "allin":
+            # Bid everything on the first bid (bad idea but easy to test)
+            bid = self.bidpower
+
         elif method == "proportional":
-            resfrac = (self.blueavail + self.brownavail)
+            # Bid a proportional amount of player's bid power based on the
+            # proportion of the available resources to the total resources (bag
+            # + drawn resources)
+            resfrac = (self.blueavail + self.brownavail)/(self.inbag + self.blueavail + self.brownavail)
+            bid = resfrac*self.bidpower
+            if bid < 0:
+                bid = 0
+            elif bid > self.bidpower:
+                bid = self.bidpower
+            else:
+                bid = int(round(bid))
+
+        elif method == "outbid_proportional":
+            # Assume the opponents are bidding proportionally, and try to barely
+            # outbid them
+
+        elif method == "fillneeds":
+            # If 
+
+        else:
+            # Randomly bid if the input string doesn't match a method string
+            print("Random bid enacted")
+            bid = random.randint(0,self.bidpower)
+
+
 
         return bid
+
+    def reducebidpower(self, bid):
+        self.bidpower = self.bidpower - bid
+
 
 
 
