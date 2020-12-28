@@ -80,93 +80,97 @@ if __name__ == "__main__":
     # allrollsarray = np.empty([maxdice,maxdice,maxdice]) # Fill with raw rolls
     # statsarray = np.empty([maxdice,maxdice,maxdice]) # Fill with tuples of mean, median, standard deviation
 
-    for waterdice in range(1,maxdice+1):
-        for sundice in range(1,maxdice+1):
-            for nutrientdice in range(1,maxdice+1):
-                # Create new output array
-                # rollarray = [[0 for j in range(3)] for i in range(nsims)]
-                # print(len(rollarray)) # rows
-                # print(len(rollarray[0])) # columns
-                rollarray = np.empty([nsims,3])
-                # pprint.pprint(rollarray)
-                # wait = input("Press Enter to continue")
-                resourcepools = np.empty([nsims,3,6]) # a row for each simulation, a column for each resource type, a page for each resource pool
+    for hexes in range(1,6):
+        for waterdice in range(1,maxdice+1):
+            for sundice in range(1,maxdice+1):
+                for nutrientdice in range(1,maxdice+1):
+                    # Create new output array
+                    # rollarray = [[0 for j in range(3)] for i in range(nsims)]
+                    # print(len(rollarray)) # rows
+                    # print(len(rollarray[0])) # columns
+                    rollarray = np.empty([nsims,3])
+                    # pprint.pprint(rollarray)
+                    # wait = input("Press Enter to continue")
+                    resourcepools = np.empty([nsims,3,6]) # a row for each simulation, a column for each resource type, a page for each resource pool
 
-                for i in range(0,nsims):
-                    water, sun, nutrient = sg.rollforresources(waterdice, sundice, nutrientdice)
-                    # print(water)
-                    rollarray[i,0] = water
-                    rollarray[i,1] = sun
-                    rollarray[i,2] = nutrient
+                    for i in range(0,nsims):
+                        water, sun, nutrient = sg.rollforresources(waterdice, sundice, nutrientdice)
+                        water *= hexes
+                        sun *= hexes
+                        nutrient *= hexes
+                        # print(water)
+                        rollarray[i,0] = water
+                        rollarray[i,1] = sun
+                        rollarray[i,2] = nutrient
 
-                    # Simulate the resource pool breakdown (using both ways of starting
-                    # from the largest pool and starting from the smallest pool)
-                    resourceroll = [water, sun, nutrient]
+                        # Simulate the resource pool breakdown (using both ways of starting
+                        # from the largest pool and starting from the smallest pool)
+                        resourceroll = [water, sun, nutrient]
 
-                    for j in range(0,3):
-                        pools = sort_resource_pool(resourceroll[j])
+                        for j in range(0,3):
+                            pools = sort_resource_pool(resourceroll[j])
 
-                        for k in range(0,6):
-                            resourcepools[i,j,k] = pools[0,k]
+                            for k in range(0,6):
+                                resourcepools[i,j,k] = pools[0,k]
 
 
 
-                # resourcepools will need to be plotted as a set of box plots, with groups of 3 box plots for each of the 6 resource pools
-                # For ideas of how to do this, see: https://stackoverflow.com/questions/16592222/matplotlib-group-boxplots
+                    # resourcepools will need to be plotted as a set of box plots, with groups of 3 box plots for each of the 6 resource pools
+                    # For ideas of how to do this, see: https://stackoverflow.com/questions/16592222/matplotlib-group-boxplots
 
-                allrollsarray[waterdice-1][sundice-1][nutrientdice-1] = rollarray
-                # pprint.pprint(rollarray)
-                # print('')
-                # pprint.pprint(rollarray[:,0])
-                # print('')
+                    allrollsarray[waterdice-1][sundice-1][nutrientdice-1] = rollarray
+                    # pprint.pprint(rollarray)
+                    # print('')
+                    # pprint.pprint(rollarray[:,0])
+                    # print('')
 
-                waterstats = (np.mean(rollarray[:,0]), np.median(rollarray[:,0]), np.std(rollarray[:,0]))
-                sunstats = (np.mean(rollarray[:,1]), np.median(rollarray[:,1]), np.std(rollarray[:,1]))
-                nutrientstats = (np.mean(rollarray[:,2]), np.median(rollarray[:,2]), np.std(rollarray[:,2]))
+                    waterstats = (np.mean(rollarray[:,0]), np.median(rollarray[:,0]), np.std(rollarray[:,0]))
+                    sunstats = (np.mean(rollarray[:,1]), np.median(rollarray[:,1]), np.std(rollarray[:,1]))
+                    nutrientstats = (np.mean(rollarray[:,2]), np.median(rollarray[:,2]), np.std(rollarray[:,2]))
 
-                statsarray[waterdice-1][sundice-1][nutrientdice-1] = (waterstats, sunstats, nutrientstats)
+                    statsarray[waterdice-1][sundice-1][nutrientdice-1] = (waterstats, sunstats, nutrientstats)
 
-                if allhistograms is True:
-                    bins = np.linspace(1,16,16)
-                    plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
-                    plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
-                    plt.hist(rollarray[:,2], bins, alpha=0.5, label='Nutrients')
-                    plt.legend(loc='upper right')
-                    titlestring = "{} Water dice, {} Sun dice, {} Nutrient dice".format(waterdice, sundice, nutrientdice)
-                    plt.title(titlestring)
-                    plt.show()
-                else:
-                    if waterdice == ForestDice[0] and sundice == ForestDice[1] and nutrientdice == ForestDice[2]:
+                    if allhistograms is True:
                         bins = np.linspace(1,16,16)
                         plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
                         plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
                         plt.hist(rollarray[:,2], bins, alpha=0.5, label='Nutrients')
                         plt.legend(loc='upper right')
-                        titlestring = "{} Water dice, {} Sun dice, {} Nutrient dice".format(waterdice, sundice, nutrientdice)
+                        titlestring = "{} Hexes \n {} Water dice, {} Sun dice, {} Nutrient dice".format(hexes, waterdice, sundice, nutrientdice)
                         plt.title(titlestring)
-                        plt.suptitle("Forest")
                         plt.show()
-                    elif waterdice == PlainsDice[0] and sundice == PlainsDice[1] and nutrientdice == PlainsDice[2]:
-                        bins = np.linspace(1,16,16)
-                        plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
-                        plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
-                        plt.hist(rollarray[:,2], bins, alpha=0.5, label='Nutrients')
-                        plt.legend(loc='upper right')
-                        titlestring = "{} Water dice, {} Sun dice, {} Nutrient dice".format(waterdice, sundice, nutrientdice)
-                        plt.title(titlestring)
-                        plt.suptitle("Plains")
-                        plt.show()
-                    elif waterdice == DesertDice[0] and sundice == DesertDice[1] and nutrientdice == DesertDice[2]:
-                        bins = np.linspace(1,16,16)
-                        plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
-                        plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
-                        plt.hist(rollarray[:,2], bins, alpha=0.5, label='Nutrients')
-                        plt.legend(loc='upper right')
-                        titlestring = "{} Water dice, {} Sun dice, {} Nutrient dice".format(waterdice, sundice, nutrientdice)
-                        plt.title(titlestring)
-                        plt.suptitle("Desert")
-                        plt.show()
-                # wait = input("Press Enter to continue")
+                    else:
+                        if waterdice == ForestDice[0] and sundice == ForestDice[1] and nutrientdice == ForestDice[2]:
+                            bins = np.linspace(1,16,16)
+                            plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water') # FIX: BINS NEED TO BE ADJUSTED SO THE HISTOGRAMS FIT ON THE PLOTS
+                            plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
+                            plt.hist(rollarray[:,2], bins, alpha=0.5, label='Nutrients')
+                            plt.legend(loc='upper right')
+                            titlestring = "{} Hexes \n {} Water dice, {} Sun dice, {} Nutrient dice".format(hexes, waterdice, sundice, nutrientdice)
+                            plt.title(titlestring)
+                            plt.suptitle("Forest")
+                            plt.show()
+                        elif waterdice == PlainsDice[0] and sundice == PlainsDice[1] and nutrientdice == PlainsDice[2]:
+                            bins = np.linspace(1,16,16)
+                            plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
+                            plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
+                            plt.hist(rollarray[:,2], bins, alpha=0.5, label='Nutrients')
+                            plt.legend(loc='upper right')
+                            titlestring = "{} Hexes \n {} Water dice, {} Sun dice, {} Nutrient dice".format(hexes, waterdice, sundice, nutrientdice)
+                            plt.title(titlestring)
+                            plt.suptitle("Plains")
+                            plt.show()
+                        elif waterdice == DesertDice[0] and sundice == DesertDice[1] and nutrientdice == DesertDice[2]:
+                            bins = np.linspace(1,16,16)
+                            plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
+                            plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
+                            plt.hist(rollarray[:,2], bins, alpha=0.5, label='Nutrients')
+                            plt.legend(loc='upper right')
+                            titlestring = "{} Hexes \n {} Water dice, {} Sun dice, {} Nutrient dice".format(hexes, waterdice, sundice, nutrientdice)
+                            plt.title(titlestring)
+                            plt.suptitle("Desert")
+                            plt.show()
+                    # wait = input("Press Enter to continue")
 
 
 
