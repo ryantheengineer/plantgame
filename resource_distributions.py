@@ -59,7 +59,11 @@ def sort_resource_pool(resource):
     return resource_pools
 
 
-
+def set_box_color(bp, color):
+    plt.setp(bp['boxes'], color=color)
+    plt.setp(bp['whiskers'], color=color)
+    plt.setp(bp['caps'], color=color)
+    plt.setp(bp['medians'], color=color)
 
 
 if __name__ == "__main__":
@@ -72,6 +76,8 @@ if __name__ == "__main__":
     ForestDice = (3, 2, 3)
     PlainsDice = (2, 2, 2)
     DesertDice = (1, 4, 2)
+
+    ticks = ['1st', '2nd', '3rd', '4th', '5th', '6th']
 
 
     allrollsarray = [[[0 for k in range(maxdice)] for j in range(maxdice)] for i in range(maxdice)]
@@ -111,7 +117,7 @@ if __name__ == "__main__":
                             pools = sort_resource_pool(resourceroll[j])
 
                             for k in range(0,6):
-                                resourcepools[i,j,k] = pools[0,k]
+                                resourcepools[i,j,k] = pools[0,k] # i is the number of simulations, j is the resource index, k is the pool index
 
 
 
@@ -130,8 +136,49 @@ if __name__ == "__main__":
 
                     statsarray[waterdice-1][sundice-1][nutrientdice-1] = (waterstats, sunstats, nutrientstats)
 
+
+                    # Sort pool data so it is plottable in box plots
+                    data_water_pools1 = np.transpose(resourcepools[:,0,0]) #FIX: This needs to be organized differently to work
+                    data_water_pools2 = np.transpose(resourcepools[:,0,1])
+                    data_water_pools3 = np.transpose(resourcepools[:,0,2])
+                    data_water_pools4 = np.transpose(resourcepools[:,0,3])
+                    data_water_pools5 = np.transpose(resourcepools[:,0,4])
+                    data_water_pools6 = np.transpose(resourcepools[:,0,5])
+
+                    data_water_pools = [data_water_pools1, data_water_pools2,
+                                        data_water_pools3, data_water_pools4,
+                                        data_water_pools5, data_water_pools6]
+
+                    data_sun_pools1 = np.transpose(resourcepools[:,1,0])
+                    data_sun_pools2 = np.transpose(resourcepools[:,1,1])
+                    data_sun_pools3 = np.transpose(resourcepools[:,1,2])
+                    data_sun_pools4 = np.transpose(resourcepools[:,1,3])
+                    data_sun_pools5 = np.transpose(resourcepools[:,1,4])
+                    data_sun_pools6 = np.transpose(resourcepools[:,1,5])
+
+                    data_sun_pools = [data_sun_pools1, data_sun_pools2,
+                                        data_sun_pools3, data_sun_pools4,
+                                        data_sun_pools5, data_sun_pools6]
+
+                    data_nutrient_pools1 = np.transpose(resourcepools[:,1,0])
+                    data_nutrient_pools2 = np.transpose(resourcepools[:,1,1])
+                    data_nutrient_pools3 = np.transpose(resourcepools[:,1,2])
+                    data_nutrient_pools4 = np.transpose(resourcepools[:,1,3])
+                    data_nutrient_pools5 = np.transpose(resourcepools[:,1,4])
+                    data_nutrient_pools6 = np.transpose(resourcepools[:,1,5])
+
+                    data_nutrient_pools = [data_nutrient_pools1, data_nutrient_pools2,
+                                    data_nutrient_pools3, data_nutrient_pools4,
+                                    data_nutrient_pools5, data_nutrient_pools6]
+
+
+
+
+
+
                     if allhistograms is True:
                         # bins = np.linspace(1,16,16)
+                        plt.figure(1)
                         bins=range(0, int(np.amax(rollarray)) + 1, 1)
                         plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
                         plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
@@ -139,10 +186,38 @@ if __name__ == "__main__":
                         plt.legend(loc='upper left')
                         titlestring = "{} Hexes \n {} Water dice, {} Sun dice, {} Nutrient dice".format(hexes, waterdice, sundice, nutrientdice)
                         plt.title(titlestring)
+
+                        # Plot boxplots
+                        plt.figure(2)
+                        bpw = plt.boxplot(data_water_pools, positions=np.array(range(len(data_water_pools))))
+                        set_box_color(bpw, '#2C7FB8')
+                        plt.title('Water resource pool distributions')
+
+                        plt.figure(3)
+                        bps = plt.boxplot(data_sun_pools, positions=np.array(range(len(data_sun_pools))))
+                        set_box_color(bps, '#D95F0E')
+                        plt.title('Sun resource pool distributions')
+
+                        plt.figure(4)
+                        bpn = plt.boxplot(data_nutrient_pools, positions=np.array(range(len(data_nutrient_pools))))
+                        set_box_color(bpn, '#31A354')
+                        plt.title('Nutrient resource pool distributions')
+
+                        # draw temporary red and blue lines and use them to create a legend
+                        # plt.plot([], c='#31A354', label='Nutrient')
+                        # plt.legend()
+
+                        plt.xticks(range(0, len(ticks), 1), ticks)
+                        # plt.xlim(-2, len(ticks)*2)
+                        # plt.ylim(0, 8)
+                        plt.tight_layout()
+                        # plt.savefig('boxcompare.png')
+
                         plt.show()
                     else:
                         if waterdice == ForestDice[0] and sundice == ForestDice[1] and nutrientdice == ForestDice[2]:
                             # bins = np.linspace(1,16,16)
+                            plt.figure(1)
                             bins=range(0, int(np.amax(rollarray)) + 1, 1)
                             plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water') # FIX: BINS NEED TO BE ADJUSTED SO THE HISTOGRAMS FIT ON THE PLOTS
                             plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
@@ -152,9 +227,46 @@ if __name__ == "__main__":
                             plt.title(titlestring)
                             suptitlestring = "Forest, {} Hexes".format(hexes)
                             plt.suptitle(suptitlestring)
+                            savename = "Forest_{}Hex_hist.png".format(hexes)
+                            plt.savefig(savename)
+
+                            # Plot boxplots
+                            plt.figure(2)
+                            bpw = plt.boxplot(data_water_pools, positions=np.array(range(len(data_water_pools))))
+                            set_box_color(bpw, '#2C7FB8')
+                            plt.title('Water resource pool distributions')
+                            savename = "Forest_{}Hex_water_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            plt.figure(3)
+                            bps = plt.boxplot(data_sun_pools, positions=np.array(range(len(data_sun_pools))))
+                            set_box_color(bps, '#D95F0E')
+                            plt.title('Sun resource pool distributions')
+                            savename = "Forest_{}Hex_sun_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            plt.figure(4)
+                            bpn = plt.boxplot(data_nutrient_pools, positions=np.array(range(len(data_nutrient_pools))))
+                            set_box_color(bpn, '#31A354')
+                            plt.title('Nutrient resource pool distributions')
+                            savename = "Forest_{}Hex_nutrient_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            # draw temporary red and blue lines and use them to create a legend
+                            # plt.plot([], c='#31A354', label='Nutrient')
+                            # plt.legend()
+
+                            plt.xticks(range(0, len(ticks), 1), ticks)
+                            # plt.xlim(-2, len(ticks)*2)
+                            # plt.ylim(0, 8)
+                            plt.tight_layout()
+                            # plt.savefig('boxcompare.png')
+
                             plt.show()
+
                         elif waterdice == PlainsDice[0] and sundice == PlainsDice[1] and nutrientdice == PlainsDice[2]:
                             # bins = np.linspace(1,16,16)
+                            plt.figure(1)
                             bins=range(0, int(np.amax(rollarray)) + 1, 1)
                             plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
                             plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
@@ -164,9 +276,46 @@ if __name__ == "__main__":
                             plt.title(titlestring)
                             suptitlestring = "Plains, {} Hexes".format(hexes)
                             plt.suptitle(suptitlestring)
+                            savename = "Plains_{}Hex_hist.png".format(hexes)
+                            plt.savefig(savename)
+
+                            # Plot boxplots
+                            plt.figure(2)
+                            bpw = plt.boxplot(data_water_pools, positions=np.array(range(len(data_water_pools))))
+                            set_box_color(bpw, '#2C7FB8')
+                            plt.title('Water resource pool distributions')
+                            savename = "Plains_{}Hex_water_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            plt.figure(3)
+                            bps = plt.boxplot(data_sun_pools, positions=np.array(range(len(data_sun_pools))))
+                            set_box_color(bps, '#D95F0E')
+                            plt.title('Sun resource pool distributions')
+                            savename = "Plains_{}Hex_sun_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            plt.figure(4)
+                            bpn = plt.boxplot(data_nutrient_pools, positions=np.array(range(len(data_nutrient_pools))))
+                            set_box_color(bpn, '#31A354')
+                            plt.title('Nutrient resource pool distributions')
+                            savename = "Plains_{}Hex_nutrient_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            # draw temporary red and blue lines and use them to create a legend
+                            # plt.plot([], c='#31A354', label='Nutrient')
+                            # plt.legend()
+
+                            plt.xticks(range(0, len(ticks), 1), ticks)
+                            # plt.xlim(-2, len(ticks)*2)
+                            # plt.ylim(0, 8)
+                            plt.tight_layout()
+                            # plt.savefig('boxcompare.png')
+
                             plt.show()
+
                         elif waterdice == DesertDice[0] and sundice == DesertDice[1] and nutrientdice == DesertDice[2]:
                             # bins = np.linspace(1,16,16)
+                            plt.figure(1)
                             bins=range(0, int(np.amax(rollarray)) + 1, 1)
                             plt.hist(rollarray[:,0], bins, alpha=0.5, label='Water')
                             plt.hist(rollarray[:,1], bins, alpha=0.5, label='Sun')
@@ -176,6 +325,41 @@ if __name__ == "__main__":
                             plt.title(titlestring)
                             suptitlestring = "Desert, {} Hexes".format(hexes)
                             plt.suptitle(suptitlestring)
+                            savename = "Desert_{}Hex_hist.png".format(hexes)
+                            plt.savefig(savename)
+
+                            # Plot boxplots
+                            plt.figure(2)
+                            bpw = plt.boxplot(data_water_pools, positions=np.array(range(len(data_water_pools))))
+                            set_box_color(bpw, '#2C7FB8')
+                            plt.title('Water resource pool distributions')
+                            savename = "Desert_{}Hex_water_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            plt.figure(3)
+                            bps = plt.boxplot(data_sun_pools, positions=np.array(range(len(data_sun_pools))))
+                            set_box_color(bps, '#D95F0E')
+                            plt.title('Sun resource pool distributions')
+                            savename = "Desert_{}Hex_sun_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            plt.figure(4)
+                            bpn = plt.boxplot(data_nutrient_pools, positions=np.array(range(len(data_nutrient_pools))))
+                            set_box_color(bpn, '#31A354')
+                            plt.title('Nutrient resource pool distributions')
+                            savename = "Desert_{}Hex_nutrient_pools.png".format(hexes)
+                            plt.savefig(savename)
+
+                            # draw temporary red and blue lines and use them to create a legend
+                            # plt.plot([], c='#31A354', label='Nutrient')
+                            # plt.legend()
+
+                            plt.xticks(range(0, len(ticks), 1), ticks)
+                            # plt.xlim(-2, len(ticks)*2)
+                            # plt.ylim(0, 8)
+                            plt.tight_layout()
+                            # plt.savefig('boxcompare.png')
+
                             plt.show()
                     # wait = input("Press Enter to continue")
 
