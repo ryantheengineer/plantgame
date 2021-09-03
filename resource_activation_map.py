@@ -17,3 +17,20 @@ class Hex:
         self.val6 = 0
         self.val8 = 0
         self.val10 = 0
+        self.location = (0, 0)    # Hex grid coordinates
+        self.neighborNE = (0, 0)
+        self.neighborE = (0, 0)
+        self.neighborSE = (0, 0)
+        self.neighborSW = (0, 0)
+        self.neighborW = (0, 0)
+        self.neighborNW = (0, 0)
+        self.calc_neighbors()
+
+    def calc_neighbors(self):
+        # Calculate the coordinates of the neighbor hexes
+        self.neighborNE = (self.location[0] + 1, self.location[1] - 1)
+        self.neighborE = (self.location[0] + 1, self.location[1])
+        self.neighborSE = (self.location[0], self.location[1] + 1)
+        self.neighborSW = (self.location[0] - 1, self.location[1] + 1)
+        self.neighborW = (self.location[0] - 1, self.location[1])
+        self.neighborNW = (self.location[0], self.location[1] - 1)
