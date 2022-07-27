@@ -53,7 +53,34 @@ class PlantCard:
         print("Carbon:\t{}".format(self.carbon))
         
         
-
+class MainBoard:    
+    def __init__(self, n_region_spaces=None, resource_triggers=None, resource_values=None):
+        # n_region_spaces: A list of 6 values, with values from 3 to 12
+        if n_region_spaces == None:
+            self.n_region_spaces = [random.randint(3,12) for i in range(0,6)]
+        else:
+            self.n_region_spaces = n_region_spaces
+            
+        # resource_triggers: 3x6 numpy array of values from 1 to 12
+        if resource_triggers == None:
+            resource_triggers = np.zeros([3,6])
+            for i in range(0,3):
+                for j in range(0,6):
+                    resource_triggers[i,j] = random.randint(1,12)
+        self.resource_triggers = resource_triggers
+        
+        # resource_values: 3x6 numpy array of values from 1 to 6
+        if resource_values == None:
+            resource_values = np.zeros([3,6])
+            for i in range(0,3):
+                for j in range(0,6):
+                    resource_values[i,j] = random.randint(1,6)
+        self.resource_values = resource_values
+        
+    def simulate_n_resource_rolls(self):
+        # Simulate n resource rolls and gather statistics on amounts of resources gained
+        
+        
 
 # PlayerBoard class holds resources and cards for a specific player, including
 # water, sunlight, nutrients, carbon, plant cards, and other action cards
@@ -67,3 +94,5 @@ if __name__ == "__main__":
     plant_cards = [PlantCard(name) for name in plant_names]
     for plant_card in plant_cards:
         plant_card.print_card()
+        
+    mainboard = MainBoard()
