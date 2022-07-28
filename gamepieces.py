@@ -44,7 +44,7 @@ class PlantCard:
             
     def print_card(self):
         # Print card attributes for quick viewing in terminal
-        print("\nName:\t{}".format(self.name))
+        print("Name:\t{}".format(self.name))
         print("Size:\t{}".format(self.plant_size))
         print("Regions:\t{}".format(self.region_list))
         print("Water:\t{}".format(self.water))
@@ -77,9 +77,9 @@ class MainBoard:
                     resource_values[i,j] = random.randint(1,6)
         self.resource_values = resource_values
         
-    def simulate_n_resource_rolls(self):
+    def simulate_n_resource_rolls(self, n_rolls):
         # Simulate n resource rolls and gather statistics on amounts of resources gained
-        
+        pass
         
 
 # PlayerBoard class holds resources and cards for a specific player, including
@@ -90,9 +90,74 @@ class PlayerBoard:
 
 
 if __name__ == "__main__":
-    plant_names = ["A", "B", "C"]
-    plant_cards = [PlantCard(name) for name in plant_names]
+    plant_names = ["A"]
+    plant_cards = [PlantCard(name,plant_size=None, region_list=None, water=3,
+                 sun=2, nutrient=1, carbon=3) for name in plant_names]
     for plant_card in plant_cards:
         plant_card.print_card()
+    
+    # wait = input("\nPress Enter to continue")
+    
+    trigger_val = 5
+    
+    n_turns = 10
+    
+    n_spaces_occupied = 3
+    
+    n_sims = 500
         
-    mainboard = MainBoard()
+    
+    for j in range(1,6):    # Number of water gained by activation
+        for k in range(1,6):    # Number of sun gained by activation
+            for m in range(1,6):    # Number of nutrient gained by activation
+                sims = np.zeros([n_turns,3,n_sims])
+                for i in range(n_sims):
+                    gained = np.zeros([n_turns,3])
+                    for n in range(len(gained)):
+                        d1 = random.randint(1,6)
+                        d2 = random.randint(1,6)
+                        dsum = d1 + d2
+                        
+                        if dsum == trigger_val:
+                            gained[n,0] = j * n_spaces_occupied
+                            gained[n,1] = k * n_spaces_occupied
+                            gained[n,2] = m * n_spaces_occupied
+                            
+                    gained_sum = np.zeros([n_turns,3])
+                    for n in range(len(gained_sum)):
+                        gained_sum[n,0] = np.sum(gained[:n,0])
+                        gained_sum[n,1] = np.sum(gained[:n,1])
+                        gained_sum[n,2] = np.sum(gained[:n,2])
+                    
+                    
+                    sims[:,:,i] = gained_sum
+                    
+                    
+                sim_means = np.zeros([n_turns,3])
+                for turn in range(n_turns):
+                    for resource in range(3):
+                        sim_means[turn,resource] = np.mean(sims[turn,resource,:])
+                        
+                print("\n{} spaces occupied:".format(n_spaces_occupied))
+                print("{} water gained on activation".format(j))
+                print("{} sun gained on activation".format(k))
+                print("{} nutrient gained on activation".format(m))
+                # print(sim_means)
+                
+                for i,plant_card in enumerate(plant_cards):
+                    needs_satisfied = np.zeros([n_turns,3])
+                    for turn in range(n_turns):
+                        needs_satisfied[turn,0] = sim_means[turn,0] // plant_card.water
+                        needs_satisfied[turn,1] = sim_means[turn,0] // plant_card.sun
+                        needs_satisfied[turn,2] = sim_means[turn,0] // plant_card.nutrient
+                
+                    plant_card.print_card()
+                    # print(needs_satisfied)
+                    
+                    carbon_gained = np.zeros(n_turns)
+                    for turn in range(n_turns):
+                        carbon_gained[turn] = np.min(needs_satisfied[turn,:]) * plant_card.carbon
+                    print(carbon_gained)
+                        
+                    
+                
