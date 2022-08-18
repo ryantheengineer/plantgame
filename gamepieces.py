@@ -6,7 +6,7 @@ regions = ["Rainforest", "Grassland", "Desert", "Deciduous Forest", "Evergreen F
 
 class PlantCard:
     def __init__(self, name, plant_size=None, region_list=None, water=None,
-                 sun=None, nutrient=None, carbon=None):
+                 sun=None, nutrient=None, carbon_out=None, carbon_in=None, plants_out=None):
         # If parameters are not supplied, randomly choose or generate values for
         # the card, except for name
         self.name = name
@@ -37,10 +37,20 @@ class PlantCard:
         else:
             self.nutrient = nutrient
             
-        if carbon == None:
-            self.carbon = random.randint(1,5)
+        if carbon_out == None:
+            self.carbon_out = random.randint(1,5)
         else:
-            self.carbon = carbon
+            self.carbon_out = carbon_out
+            
+        if carbon_in == None:
+            self.carbon_in = random.randint(1,5)
+        else:
+            self.carbon_in = carbon_in
+            
+        if plants_out == None:
+            self.plants_out = random.randint(1,5)
+        else:
+            self.plants_out = plants_out
             
     def print_card(self):
         # Print card attributes for quick viewing in terminal
@@ -50,7 +60,7 @@ class PlantCard:
         print("Water:\t{}".format(self.water))
         print("Sun:\t{}".format(self.sun))
         print("Nutrient:\t{}".format(self.nutrient))
-        print("Carbon:\t{}".format(self.carbon))
+        print("Carbon:\t{}".format(self.carbon_out))
         
         
 class MainBoard:    
@@ -83,7 +93,7 @@ class MainBoard:
         
 
 # PlayerBoard class holds resources and cards for a specific player, including
-# water, sunlight, nutrients, carbon, plant cards, and other action cards
+# water, sunlight, nutrients, carbon_out, plant cards, and other action cards
 class PlayerBoard:
     def __init__(self, plantcards):
         pass
@@ -92,17 +102,17 @@ class PlayerBoard:
 if __name__ == "__main__":
     plant_names = ["A"]
     plant_cards = [PlantCard(name,plant_size=None, region_list=None, water=3,
-                 sun=2, nutrient=1, carbon=3) for name in plant_names]
+                 sun=2, nutrient=1, carbon_out=3, carbon_in=4, plants_out=1) for name in plant_names]
     for plant_card in plant_cards:
         plant_card.print_card()
     
     # wait = input("\nPress Enter to continue")
     
-    trigger_val = 5
+    trigger_val = 7
     
     n_turns = 10
     
-    n_spaces_occupied = 3
+    n_spaces_occupied = 5
     
     n_sims = 500
         
@@ -138,10 +148,10 @@ if __name__ == "__main__":
                     for resource in range(3):
                         sim_means[turn,resource] = np.mean(sims[turn,resource,:])
                         
-                print("\n{} spaces occupied:".format(n_spaces_occupied))
-                print("{} water gained on activation".format(j))
-                print("{} sun gained on activation".format(k))
-                print("{} nutrient gained on activation".format(m))
+                # print("\n{} spaces occupied:".format(n_spaces_occupied))
+                print("\n{} water, {} sun, {} nutrient gained on activation".format(j,k,m))
+                # print("{} sun gained on activation".format(k))
+                # print("{} nutrient gained on activation".format(m))
                 # print(sim_means)
                 
                 for i,plant_card in enumerate(plant_cards):
@@ -151,13 +161,16 @@ if __name__ == "__main__":
                         needs_satisfied[turn,1] = sim_means[turn,0] // plant_card.sun
                         needs_satisfied[turn,2] = sim_means[turn,0] // plant_card.nutrient
                 
-                    plant_card.print_card()
+                    # plant_card.print_card()
                     # print(needs_satisfied)
                     
                     carbon_gained = np.zeros(n_turns)
+                    plants_gained = np.zeros(n_turns)
                     for turn in range(n_turns):
-                        carbon_gained[turn] = np.min(needs_satisfied[turn,:]) * plant_card.carbon
-                    print(carbon_gained)
+                        carbon_gained[turn] = np.min(needs_satisfied[turn,:]) * plant_card.carbon_out
+                        plants_gained[turn] = (carbon_gained[turn] // plant_card.carbon_in) * plant_card.plants_out
+                    print("Carbon gained each turn: {}".format(carbon_gained))
+                    print("Plants gained each turn: {}".format(plants_gained))
                         
-                    
+    plant_card.print_card()
                 
