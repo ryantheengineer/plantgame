@@ -102,7 +102,7 @@ class PlayerBoard:
 if __name__ == "__main__":
     plant_names = ["A"]
     plant_cards = [PlantCard(name,plant_size=None, region_list=None, water=3,
-                 sun=2, nutrient=1, carbon_out=3, carbon_in=4, plants_out=1) for name in plant_names]
+                 sun=2, nutrient=1, carbon_out=3, carbon_in=1, plants_out=3) for name in plant_names]
     for plant_card in plant_cards:
         plant_card.print_card()
     
