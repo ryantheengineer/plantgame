@@ -1,5 +1,6 @@
 import numpy as np
 import random 
+import pandas as pd
 
 plant_sizes = ["Small", "Medium", "Large"]
 regions = ["Rainforest", "Grassland", "Desert", "Deciduous Forest", "Evergreen Forest", "Tundra"]
@@ -98,28 +99,33 @@ class PlayerBoard:
     def __init__(self, plantcards):
         pass
 
-
-if __name__ == "__main__":
-    plant_names = ["A"]
-    plant_cards = [PlantCard(name,plant_size=None, region_list=None, water=3,
-                 sun=2, nutrient=1, carbon_out=3, carbon_in=1, plants_out=3) for name in plant_names]
-    for plant_card in plant_cards:
-        plant_card.print_card()
+def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require):
+    # Goal of this function is to find the minimum functioning level of plant
+    # card characteristics for a given scenario: a given roll trigger value,
+    # a desired number of turns to achieve the goal (get a certain amount of
+    # carbon in the time desired), the number of spaces occupied.
     
-    # wait = input("\nPress Enter to continue")
+    # Cycle through resources and adjust the plant card characteristics to
+    # achieve the desired result
     
-    trigger_val = 7
+    # Initialize lists for creating a DataFrame later
+    water_activated = []
+    sun_activated = []
+    nutrient_activated = []
+    water_in = []
+    sun_in = []
+    nutrient_in = []
+    carbon_out = []
+    turns_to_goal = []
     
-    n_turns = 10
+    n_sims = 100
+    n_turns = turns_sim
     
-    n_spaces_occupied = 5
-    
-    n_sims = 500
-        
-    
-    for j in range(1,6):    # Number of water gained by activation
-        for k in range(1,6):    # Number of sun gained by activation
-            for m in range(1,6):    # Number of nutrient gained by activation
+    for j in range(1, max_resource+1):
+        for k in range(1, max_resource+1):
+            for m in range(1, max_resource+1):
+                
+                
                 sims = np.zeros([n_turns,3,n_sims])
                 for i in range(n_sims):
                     gained = np.zeros([n_turns,3])
@@ -128,7 +134,7 @@ if __name__ == "__main__":
                         d2 = random.randint(1,6)
                         dsum = d1 + d2
                         
-                        if dsum == trigger_val:
+                        if dsum == rolltrigger:
                             gained[n,0] = j * n_spaces_occupied
                             gained[n,1] = k * n_spaces_occupied
                             gained[n,2] = m * n_spaces_occupied
@@ -149,28 +155,160 @@ if __name__ == "__main__":
                         sim_means[turn,resource] = np.mean(sims[turn,resource,:])
                         
                 # print("\n{} spaces occupied:".format(n_spaces_occupied))
-                print("\n{} water, {} sun, {} nutrient gained on activation".format(j,k,m))
+                # print("\n{} water, {} sun, {} nutrient gained on activation".format(j,k,m))
                 # print("{} sun gained on activation".format(k))
                 # print("{} nutrient gained on activation".format(m))
                 # print(sim_means)
                 
-                for i,plant_card in enumerate(plant_cards):
-                    needs_satisfied = np.zeros([n_turns,3])
-                    for turn in range(n_turns):
-                        needs_satisfied[turn,0] = sim_means[turn,0] // plant_card.water
-                        needs_satisfied[turn,1] = sim_means[turn,0] // plant_card.sun
-                        needs_satisfied[turn,2] = sim_means[turn,0] // plant_card.nutrient
-                
-                    # plant_card.print_card()
-                    # print(needs_satisfied)
-                    
-                    carbon_gained = np.zeros(n_turns)
-                    plants_gained = np.zeros(n_turns)
-                    for turn in range(n_turns):
-                        carbon_gained[turn] = np.min(needs_satisfied[turn,:]) * plant_card.carbon_out
-                        plants_gained[turn] = (carbon_gained[turn] // plant_card.carbon_in) * plant_card.plants_out
-                    print("Carbon gained each turn: {}".format(carbon_gained))
-                    print("Plants gained each turn: {}".format(plants_gained))
+                # Iterate through plant card designs
+                for w in range(1,max_require+1):
+                    for x in range(1,max_require+1):
+                        for y in range(1,max_require+1):
+                            for z in range(1,max_require+1):
+                                plant_card = PlantCard("A",water=w,sun=x,nutrient=y,carbon_out=z)
+                                
+                                water_activated.append(j)
+                                sun_activated.append(k)
+                                nutrient_activated.append(m)
+                                water_in.append(w)
+                                sun_in.append(x)
+                                nutrient_in.append(y)
+                                carbon_out.append(z)
+                                
+                                
+                                needs_satisfied = np.zeros([n_turns,3])
+                                for turn in range(n_turns):
+                                    needs_satisfied[turn,0] = sim_means[turn,0] // plant_card.water
+                                    needs_satisfied[turn,1] = sim_means[turn,1] // plant_card.sun
+                                    needs_satisfied[turn,2] = sim_means[turn,2] // plant_card.nutrient
+                            
+                                # plant_card.print_card()
+                                # print(needs_satisfied)
+                                
+                                carbon_gained = np.zeros(n_turns)
+                                # plants_gained = np.zeros(n_turns)
+                                for turn in range(n_turns):
+                                    carbon_gained[turn] = np.min(needs_satisfied[turn,:]) * plant_card.carbon_out
+                                    # plants_gained[turn] = (carbon_gained[turn] // plant_card.carbon_in) * plant_card.plants_out
+                                    
+                                carbon_turns = 0
+                                for gained in carbon_gained:
+                                    if gained < carbon_desired:
+                                        carbon_turns += 1
+                                        
+                                turns_to_goal.append(carbon_turns)
+                                # print("Carbon gained each turn: {}".format(carbon_gained))
+                                # print("Plants gained each turn: {}".format(plants_gained))
+                                
+    # Create dataframe from data
+    data = {"Water Activated":water_activated, "Sun Activated":sun_activated,
+            "Nutrient Activated":nutrient_activated, "Water In":water_in,
+            "Sun In":sun_in, "Nutrient In":nutrient_in, "Carbon Out":carbon_out,
+            "Turns to Goal":turns_to_goal}
+    df = pd.DataFrame(data)
+    
+    df_compatible = df[df["Turns to Goal"] <= turns_desired]
+    
+    return df, df_compatible
+
+
+if __name__ == "__main__":
+    rolltrigger = 1
+    turns_sim = 10
+    turns_desired = 5
+    carbon_desired = 3
+    n_spaces_occupied = 1
+    max_resource = 5
+    max_require = 5    
+    
+    df_all, df_compatible = discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require)
+    
+    n_all = len(df_all)
+    n_compatible = len(df_compatible)
+    pct_compatible = 100 * (n_compatible/n_all)
+    
+    if pct_compatible == 0.0:
+        print("No compatible card designs were found for the chosen inputs.")
+    else:
+        min_turns = min(df_compatible["Turns to Goal"])
+        
+        df_fastest = df_compatible[df_compatible["Turns to Goal"] == min_turns]
+        
+        n_fastest = len(df_fastest)
+        pct_fastest = 100 * (n_fastest/n_all)
+    
+    
+    # plant_names = ["A"]
+    # plant_cards = [PlantCard(name,plant_size=None, region_list=None, water=3,
+    #              sun=2, nutrient=1, carbon_out=3, carbon_in=1, plants_out=3) for name in plant_names]
+    # for plant_card in plant_cards:
+    #     plant_card.print_card()
+    
+    # # wait = input("\nPress Enter to continue")
+    
+    # trigger_val = 7
+    
+    # n_turns = 10
+    
+    # n_spaces_occupied = 5
+    
+    # n_sims = 500
+        
+    
+    # for j in range(1,6):    # Number of water gained by activation
+    #     for k in range(1,6):    # Number of sun gained by activation
+    #         for m in range(1,6):    # Number of nutrient gained by activation
+    #             sims = np.zeros([n_turns,3,n_sims])
+    #             for i in range(n_sims):
+    #                 gained = np.zeros([n_turns,3])
+    #                 for n in range(len(gained)):
+    #                     d1 = random.randint(1,6)
+    #                     d2 = random.randint(1,6)
+    #                     dsum = d1 + d2
                         
-    plant_card.print_card()
+    #                     if dsum == trigger_val:
+    #                         gained[n,0] = j * n_spaces_occupied
+    #                         gained[n,1] = k * n_spaces_occupied
+    #                         gained[n,2] = m * n_spaces_occupied
+                            
+    #                 gained_sum = np.zeros([n_turns,3])
+    #                 for n in range(len(gained_sum)):
+    #                     gained_sum[n,0] = np.sum(gained[:n,0])
+    #                     gained_sum[n,1] = np.sum(gained[:n,1])
+    #                     gained_sum[n,2] = np.sum(gained[:n,2])
+                    
+                    
+    #                 sims[:,:,i] = gained_sum
+                    
+                    
+    #             sim_means = np.zeros([n_turns,3])
+    #             for turn in range(n_turns):
+    #                 for resource in range(3):
+    #                     sim_means[turn,resource] = np.mean(sims[turn,resource,:])
+                        
+    #             # print("\n{} spaces occupied:".format(n_spaces_occupied))
+    #             print("\n{} water, {} sun, {} nutrient gained on activation".format(j,k,m))
+    #             # print("{} sun gained on activation".format(k))
+    #             # print("{} nutrient gained on activation".format(m))
+    #             # print(sim_means)
+                
+    #             for i,plant_card in enumerate(plant_cards):
+    #                 needs_satisfied = np.zeros([n_turns,3])
+    #                 for turn in range(n_turns):
+    #                     needs_satisfied[turn,0] = sim_means[turn,0] // plant_card.water
+    #                     needs_satisfied[turn,1] = sim_means[turn,0] // plant_card.sun
+    #                     needs_satisfied[turn,2] = sim_means[turn,0] // plant_card.nutrient
+                
+    #                 # plant_card.print_card()
+    #                 # print(needs_satisfied)
+                    
+    #                 carbon_gained = np.zeros(n_turns)
+    #                 plants_gained = np.zeros(n_turns)
+    #                 for turn in range(n_turns):
+    #                     carbon_gained[turn] = np.min(needs_satisfied[turn,:]) * plant_card.carbon_out
+    #                     plants_gained[turn] = (carbon_gained[turn] // plant_card.carbon_in) * plant_card.plants_out
+    #                 print("Carbon gained each turn: {}".format(carbon_gained))
+    #                 print("Plants gained each turn: {}".format(plants_gained))
+                        
+    # plant_card.print_card()
                 
