@@ -213,28 +213,109 @@ def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_
     df = pd.DataFrame(data)
     
     # Suggest biomes that thematically fit with the resources that activate
-    biomes = []
+    df_compatible, compatible_biomes = suggest_biomes(df, turns_desired, max_require)
+    # biomes = []
     
+    # biomes_list = ["Rainforest", "Grassland", "Desert", "Deciduous Forest", "Evergreen Forest", "Tundra"]
+    # for i in range(len(df)):
+    #     biomes_specific = []
+    #     if df["Water Activated"].iloc[i] <= 2:
+    #         biomes_specific.append("Desert")
+    #         biomes_specific.append("Tundra")
+    #     if df["Water Activated"].iloc[i] > 2 and df["Water Activated"].iloc[i] < 5:
+    #         biomes_specific.append("Grassland")
+    #         biomes_specific.append("Deciduous Forest")
+    #         biomes_specific.append("Evergreen Forest")
+    #     if df["Water Activated"].iloc[i] >= 5:
+    #         biomes_specific.append("Rainforest")
+    #     if df["Sun Activated"].iloc[i] <= 2:
+    #         biomes_specific.append("Rainforest")
+    #         biomes_specific.append("Tundra")
+    #     if df["Sun Activated"].iloc[i] <= 3:
+    #         biomes_specific.append("Evergreen Forest")
+    #     if df["Sun Activated"].iloc[i] > 3:
+    #         biomes_specific.append("Desert")
+    #         biomes_specific.append("Grassland")
+            
+        
+    #     biomes_specific = set(biomes_specific)
+    #     biomes_specific = list(biomes_specific)
+        
+    #     biomes.append(biomes_specific)
+        
+    # df["Biomes"] = biomes
+    
+    # df_compatible = df[df["Turns to Goal"] == turns_desired]
+    
+    # compatible_biomes_dataframes = []
+    # for biome in biomes_list:
+    #     selection = [biome]
+    #     df_compatible_biome = df_compatible[pd.DataFrame(df_compatible.Biomes.tolist()).isin(selection).any(1).values]
+    #     compatible_biomes_dataframes.append(df_compatible_biome)
+        
+    # compatible_biomes = {"Rainforest":compatible_biomes_dataframes[0],
+    #                      "Grassland":compatible_biomes_dataframes[1],
+    #                      "Desert":compatible_biomes_dataframes[2],
+    #                      "Deciduous Forest":compatible_biomes_dataframes[3],
+    #                      "Evergreen Forest":compatible_biomes_dataframes[4],
+    #                      "Tundra":compatible_biomes_dataframes[5]}
+    
+    return df, df_compatible, compatible_biomes
+
+
+def suggest_biomes(df, turns_desired, max_require):
+    # Suggest biomes that thematically fit with the resources that activate
+    biomes = []
     biomes_list = ["Rainforest", "Grassland", "Desert", "Deciduous Forest", "Evergreen Forest", "Tundra"]
+    
+    # Set thresholds for thematic biome resource levels
+    # Rainforest
+    min_water_rainforest = int(np.around((3/5)*max_require))
+    max_water_rainforest = max_require
+    min_sun_rainforest = 1
+    max_sun_rainforest = int(np.around((3/5)*max_require))
+    min_nutrient_rainforest = int(np.around((3/5)*max_require))
+    max_nutrient_rainforest = max_require
+    
+    # Grassland
+    min_water_grassland = int(np.around((2/5)*max_require))
+    max_water_grassland = int(np.around((4/5)*max_require))
+    min_sun_grassland = int(np.around((3/5)*max_require))
+    max_sun_grassland = max_require
+    min_nutrient_grassland = int(np.around((1/5)*max_require))
+    max_nutrient_grassland = max_require
+    
+    # Desert
+    min_water_desert = 1
+    max_water_desert = int(np.around((2/5)*max_require))
+    min_sun_desert = int(np.around((4/5)*max_require))
+    max_sun_desert = max_require
+    min_nutrient_desert = 1
+    max_nutrient_desert = int(np.around((3/5)*max_require))
+    
     for i in range(len(df)):
         biomes_specific = []
-        if df["Water Activated"].iloc[i] <= 2:
-            biomes_specific.append("Desert")
-            biomes_specific.append("Tundra")
-        if df["Water Activated"].iloc[i] > 2 and df["Water Activated"].iloc[i] < 5:
-            biomes_specific.append("Grassland")
-            biomes_specific.append("Deciduous Forest")
-            biomes_specific.append("Evergreen Forest")
-        if df["Water Activated"].iloc[i] >= 5:
-            biomes_specific.append("Rainforest")
-        if df["Sun Activated"].iloc[i] <= 2:
-            biomes_specific.append("Rainforest")
-            biomes_specific.append("Tundra")
-        if df["Sun Activated"].iloc[i] <= 3:
-            biomes_specific.append("Evergreen Forest")
-        if df["Sun Activated"].iloc[i] > 3:
-            biomes_specific.append("Desert")
-            biomes_specific.append("Grassland")
+        water = df["Water Activated"].iloc[i]
+        sun = df["Sun Activated"].iloc[i]
+        nutrient = df["Nutrient Activated"].iloc[i]
+        
+        # Rainforest
+        if water >= min_water_rainforest and water <= max_water_rainforest:
+            if sun >= min_sun_rainforest and sun <= max_sun_rainforest:
+                if nutrient >= min_nutrient_rainforest and nutrient <= max_nutrient_rainforest:
+                    biomes_specific.append("Rainforest")
+                    
+        # Grassland
+        if water >= min_water_grassland and water <= max_water_grassland:
+            if sun >= min_sun_grassland and sun <= max_sun_grassland:
+                if nutrient >= min_nutrient_grassland and nutrient <= max_nutrient_grassland:
+                    biomes_specific.append("Grassland")
+                    
+        # Desert
+        if water >= min_water_desert and water <= max_water_desert:
+            if sun >= min_sun_desert and sun <= max_sun_desert:
+                if nutrient >= min_nutrient_desert and nutrient <= max_nutrient_desert:
+                    biomes_specific.append("Desert")
             
         
         biomes_specific = set(biomes_specific)
@@ -259,7 +340,7 @@ def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_
                          "Evergreen Forest":compatible_biomes_dataframes[4],
                          "Tundra":compatible_biomes_dataframes[5]}
     
-    return df, df_compatible, compatible_biomes
+    return df_compatible, compatible_biomes
 
 
 if __name__ == "__main__":
@@ -277,6 +358,7 @@ if __name__ == "__main__":
     
     df_all, df_compatible, compatible_biomes = discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require)
     
+    # Summarize data
     n_all = len(df_all)
     n_compatible = len(df_compatible)
     pct_compatible = 100 * (n_compatible/n_all)
