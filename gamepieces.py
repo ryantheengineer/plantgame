@@ -130,8 +130,13 @@ def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_
                 for i in range(n_sims):
                     gained = np.zeros([n_turns,3])
                     for n in range(len(gained)):
-                        d1 = random.randint(1,6)
-                        d2 = random.randint(1,6)
+                        # # 2D6
+                        # d1 = random.randint(1,6)
+                        # d2 = random.randint(1,6)
+                        
+                        # 2D3
+                        d1 = random.randint(1,3)
+                        d2 = random.randint(1,3)
                         dsum = d1 + d2
                         
                         if dsum == rolltrigger:
@@ -207,21 +212,70 @@ def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_
             "Turns to Goal":turns_to_goal}
     df = pd.DataFrame(data)
     
-    df_compatible = df[df["Turns to Goal"] <= turns_desired]
+    # Suggest biomes that thematically fit with the resources that activate
+    biomes = []
     
-    return df, df_compatible
+    biomes_list = ["Rainforest", "Grassland", "Desert", "Deciduous Forest", "Evergreen Forest", "Tundra"]
+    for i in range(len(df)):
+        biomes_specific = []
+        if df["Water Activated"].iloc[i] <= 2:
+            biomes_specific.append("Desert")
+            biomes_specific.append("Tundra")
+        if df["Water Activated"].iloc[i] > 2 and df["Water Activated"].iloc[i] < 5:
+            biomes_specific.append("Grassland")
+            biomes_specific.append("Deciduous Forest")
+            biomes_specific.append("Evergreen Forest")
+        if df["Water Activated"].iloc[i] >= 5:
+            biomes_specific.append("Rainforest")
+        if df["Sun Activated"].iloc[i] <= 2:
+            biomes_specific.append("Rainforest")
+            biomes_specific.append("Tundra")
+        if df["Sun Activated"].iloc[i] <= 3:
+            biomes_specific.append("Evergreen Forest")
+        if df["Sun Activated"].iloc[i] > 3:
+            biomes_specific.append("Desert")
+            biomes_specific.append("Grassland")
+            
+        
+        biomes_specific = set(biomes_specific)
+        biomes_specific = list(biomes_specific)
+        
+        biomes.append(biomes_specific)
+        
+    df["Biomes"] = biomes
+    
+    df_compatible = df[df["Turns to Goal"] == turns_desired]
+    
+    compatible_biomes_dataframes = []
+    for biome in biomes_list:
+        selection = [biome]
+        df_compatible_biome = df_compatible[pd.DataFrame(df_compatible.Biomes.tolist()).isin(selection).any(1).values]
+        compatible_biomes_dataframes.append(df_compatible_biome)
+        
+    compatible_biomes = {"Rainforest":compatible_biomes_dataframes[0],
+                         "Grassland":compatible_biomes_dataframes[1],
+                         "Desert":compatible_biomes_dataframes[2],
+                         "Deciduous Forest":compatible_biomes_dataframes[3],
+                         "Evergreen Forest":compatible_biomes_dataframes[4],
+                         "Tundra":compatible_biomes_dataframes[5]}
+    
+    return df, df_compatible, compatible_biomes
 
 
 if __name__ == "__main__":
-    rolltrigger = 1
+    rolltrigger = 3 # sum of 2D3
     turns_sim = 10
-    turns_desired = 5
+    turns_desired = 1
+    if turns_desired > turns_sim:
+        raise ValueError("turns_desired should be <= to turns_sim for useful results")
     carbon_desired = 3
     n_spaces_occupied = 1
     max_resource = 5
-    max_require = 5    
+    max_require = 5
+    if carbon_desired > max_require:
+        raise ValueError("carbon_desired must be <= max_require")
     
-    df_all, df_compatible = discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require)
+    df_all, df_compatible, compatible_biomes = discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require)
     
     n_all = len(df_all)
     n_compatible = len(df_compatible)
@@ -230,12 +284,30 @@ if __name__ == "__main__":
     if pct_compatible == 0.0:
         print("No compatible card designs were found for the chosen inputs.")
     else:
-        min_turns = min(df_compatible["Turns to Goal"])
+        print("{}% compatible scenarios".format(pct_compatible))
         
-        df_fastest = df_compatible[df_compatible["Turns to Goal"] == min_turns]
+        n_rainforest_designs = len(compatible_biomes["Rainforest"])
+        n_grassland_designs = len(compatible_biomes["Grassland"])
+        n_desert_designs = len(compatible_biomes["Desert"])
+        n_deciduous_designs = len(compatible_biomes["Deciduous Forest"])
+        n_evergreen_designs = len(compatible_biomes["Evergreen Forest"])
+        n_tundra_designs = len(compatible_biomes["Tundra"])
         
-        n_fastest = len(df_fastest)
-        pct_fastest = 100 * (n_fastest/n_all)
+        print("\nScenario Description:")
+        print("Roll trigger:\t{} (2D3)".format(rolltrigger))
+        print("Spaces occupied:\t{}".format(n_spaces_occupied))
+        print("Carbon goal:\t{}".format(carbon_desired))
+        print("Desired turns:\t{}".format(turns_desired))
+        
+        
+        print("\nCompatible Scenarios:")
+        print("Total:\t{}".format(n_compatible))
+        print("Rainforest:\t{}".format(n_rainforest_designs))
+        print("Grassland:\t{}".format(n_grassland_designs))
+        print("Desert:\t{}".format(n_desert_designs))
+        print("Deciduous Forest:\t{}".format(n_deciduous_designs))
+        print("Evergreen Forest:\t{}".format(n_evergreen_designs))
+        print("Tundra:\t{}".format(n_tundra_designs))
     
     
     # plant_names = ["A"]
