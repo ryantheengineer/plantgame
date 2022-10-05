@@ -99,7 +99,7 @@ class PlayerBoard:
     def __init__(self, plantcards):
         pass
 
-def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require):
+def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require, max_carbon_gain):
     # Goal of this function is to find the minimum functioning level of plant
     # card characteristics for a given scenario: a given roll trigger value,
     # a desired number of turns to achieve the goal (get a certain amount of
@@ -169,7 +169,7 @@ def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_
                 for w in range(1,max_require+1):
                     for x in range(1,max_require+1):
                         for y in range(1,max_require+1):
-                            for z in range(1,max_require+1):
+                            for z in range(1,max_carbon_gain+1):
                                 plant_card = PlantCard("A",water=w,sun=x,nutrient=y,carbon_out=z)
                                 
                                 water_activated.append(j)
@@ -293,6 +293,30 @@ def suggest_biomes(df, turns_desired, max_require):
     min_nutrient_desert = 1
     max_nutrient_desert = int(np.around((3/5)*max_require))
     
+    # Deciduous Forest
+    min_water_deciduous = 1
+    max_water_deciduous = int(np.around((4/5)*max_require))
+    min_sun_deciduous = int(np.around((2/5)*max_require))
+    max_sun_deciduous = max_require
+    min_nutrient_deciduous = 1
+    max_nutrient_deciduous = int(np.around((4/5)*max_require))
+    
+    # Evergreen Forest
+    min_water_evergreen = 1
+    max_water_evergreen = int(np.around((4/5)*max_require))
+    min_sun_evergreen = 1
+    max_sun_evergreen = int(np.around((4/5)*max_require))
+    min_nutrient_evergreen = 1
+    max_nutrient_evergreen = int(np.around((3/5)*max_require))
+    
+    # Tundra
+    min_water_tundra = 1
+    max_water_tundra = int(np.around((2/5)*max_require))
+    min_sun_tundra = 1
+    max_sun_tundra = int(np.around((2/5)*max_require))
+    min_nutrient_tundra = 1
+    max_nutrient_tundra = int(np.around((2/5)*max_require))
+    
     for i in range(len(df)):
         biomes_specific = []
         water = df["Water Activated"].iloc[i]
@@ -316,6 +340,24 @@ def suggest_biomes(df, turns_desired, max_require):
             if sun >= min_sun_desert and sun <= max_sun_desert:
                 if nutrient >= min_nutrient_desert and nutrient <= max_nutrient_desert:
                     biomes_specific.append("Desert")
+                    
+        # Deciduous Forest
+        if water >= min_water_deciduous and water <= max_water_deciduous:
+            if sun >= min_sun_deciduous and sun <= max_sun_deciduous:
+                if nutrient >= min_nutrient_deciduous and nutrient <= max_nutrient_deciduous:
+                    biomes_specific.append("Deciduous Forest")
+                    
+        # Evergreen Forest
+        if water >= min_water_evergreen and water <= max_water_evergreen:
+            if sun >= min_sun_evergreen and sun <= max_sun_evergreen:
+                if nutrient >= min_nutrient_evergreen and nutrient <= max_nutrient_evergreen:
+                    biomes_specific.append("Evergreen Forest")
+                    
+        # Tundra
+        if water >= min_water_tundra and water <= max_water_tundra:
+            if sun >= min_sun_tundra and sun <= max_sun_tundra:
+                if nutrient >= min_nutrient_tundra and nutrient <= max_nutrient_tundra:
+                    biomes_specific.append("Tundra")
             
         
         biomes_specific = set(biomes_specific)
@@ -346,17 +388,16 @@ def suggest_biomes(df, turns_desired, max_require):
 if __name__ == "__main__":
     rolltrigger = 3 # sum of 2D3
     turns_sim = 10
-    turns_desired = 1
+    turns_desired = 2
     if turns_desired > turns_sim:
         raise ValueError("turns_desired should be <= to turns_sim for useful results")
     carbon_desired = 3
-    n_spaces_occupied = 1
+    n_spaces_occupied = 2
     max_resource = 5
     max_require = 5
-    if carbon_desired > max_require:
-        raise ValueError("carbon_desired must be <= max_require")
+    max_carbon_gain = 3
     
-    df_all, df_compatible, compatible_biomes = discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require)
+    df_all, df_compatible, compatible_biomes = discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require, max_carbon_gain)
     
     # Summarize data
     n_all = len(df_all)
