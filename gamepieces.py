@@ -214,51 +214,6 @@ def discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_
     
     # Suggest biomes that thematically fit with the resources that activate
     df_compatible, compatible_biomes = suggest_biomes(df, turns_desired, max_require)
-    # biomes = []
-    
-    # biomes_list = ["Rainforest", "Grassland", "Desert", "Deciduous Forest", "Evergreen Forest", "Tundra"]
-    # for i in range(len(df)):
-    #     biomes_specific = []
-    #     if df["Water Activated"].iloc[i] <= 2:
-    #         biomes_specific.append("Desert")
-    #         biomes_specific.append("Tundra")
-    #     if df["Water Activated"].iloc[i] > 2 and df["Water Activated"].iloc[i] < 5:
-    #         biomes_specific.append("Grassland")
-    #         biomes_specific.append("Deciduous Forest")
-    #         biomes_specific.append("Evergreen Forest")
-    #     if df["Water Activated"].iloc[i] >= 5:
-    #         biomes_specific.append("Rainforest")
-    #     if df["Sun Activated"].iloc[i] <= 2:
-    #         biomes_specific.append("Rainforest")
-    #         biomes_specific.append("Tundra")
-    #     if df["Sun Activated"].iloc[i] <= 3:
-    #         biomes_specific.append("Evergreen Forest")
-    #     if df["Sun Activated"].iloc[i] > 3:
-    #         biomes_specific.append("Desert")
-    #         biomes_specific.append("Grassland")
-            
-        
-    #     biomes_specific = set(biomes_specific)
-    #     biomes_specific = list(biomes_specific)
-        
-    #     biomes.append(biomes_specific)
-        
-    # df["Biomes"] = biomes
-    
-    # df_compatible = df[df["Turns to Goal"] == turns_desired]
-    
-    # compatible_biomes_dataframes = []
-    # for biome in biomes_list:
-    #     selection = [biome]
-    #     df_compatible_biome = df_compatible[pd.DataFrame(df_compatible.Biomes.tolist()).isin(selection).any(1).values]
-    #     compatible_biomes_dataframes.append(df_compatible_biome)
-        
-    # compatible_biomes = {"Rainforest":compatible_biomes_dataframes[0],
-    #                      "Grassland":compatible_biomes_dataframes[1],
-    #                      "Desert":compatible_biomes_dataframes[2],
-    #                      "Deciduous Forest":compatible_biomes_dataframes[3],
-    #                      "Evergreen Forest":compatible_biomes_dataframes[4],
-    #                      "Tundra":compatible_biomes_dataframes[5]}
     
     return df, df_compatible, compatible_biomes
 
