@@ -385,17 +385,22 @@ def suggest_biomes(df, turns_desired, max_require):
     return df_compatible, compatible_biomes
 
 
+def determine_likely_resources(max_spaces,max_carbon_desired,max_turns_desired):
+    rolltriggers = [2,3,4,5,6]
+    turns_sim = 10
+    
+
 if __name__ == "__main__":
-    rolltrigger = 3 # sum of 2D3
+    rolltrigger = 2 # sum of 2D3
     turns_sim = 10
     turns_desired = 2
     if turns_desired > turns_sim:
         raise ValueError("turns_desired should be <= to turns_sim for useful results")
-    carbon_desired = 3
-    n_spaces_occupied = 2
+    carbon_desired = 2
+    n_spaces_occupied = 1
     max_resource = 5
     max_require = 5
-    max_carbon_gain = 3
+    max_carbon_gain = 8
     
     df_all, df_compatible, compatible_biomes = discover_plant_desired_carbon(rolltrigger, turns_sim, turns_desired, carbon_desired, n_spaces_occupied, max_resource, max_require, max_carbon_gain)
     
